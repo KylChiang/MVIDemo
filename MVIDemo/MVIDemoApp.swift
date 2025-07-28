@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct MVIDemoApp: App {
+    private let dependencyContainer = DependencyContainer()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(dependencyContainer: dependencyContainer)
         }
     }
 }

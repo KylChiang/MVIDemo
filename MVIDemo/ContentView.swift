@@ -8,25 +8,33 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var isLoggedIn = false
+    private let dependencyContainer: DependencyContainer
+    
+    init(dependencyContainer: DependencyContainer) {
+        self.dependencyContainer = dependencyContainer
+        
+        // 檢查是否已有登入用戶
+        let user = dependencyContainer.getCurrentUserUseCase.execute()
+        self._isLoggedIn = State(initialValue: user != nil)
+    }
+    
     var body: some View {
-        VStack {
-            Text("MVI Demo App")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-            
-            Text("專案結構已建立完成")
-                .font(.title2)
-                .padding()
-            
-            Text("請在 Xcode 中手動加入其他檔案到專案中")
-                .font(.body)
-                .multilineTextAlignment(.center)
-                .padding()
+        if isLoggedIn {
+            HomeView(
+                homeReducer: dependencyContainer.makeHomeReducer(),
+                announcementsReducer: dependencyContainer.makeAnnouncementsReducer(),
+                isLoggedIn: $isLoggedIn
+            )
+        } else {
+            LoginView(
+                reducer: dependencyContainer.makeLoginReducer(),
+                isLoggedIn: $isLoggedIn
+            )
         }
-        .padding()
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(dependencyContainer: DependencyContainer())
 }
