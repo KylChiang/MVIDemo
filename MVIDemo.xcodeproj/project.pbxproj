@@ -27,6 +27,7 @@
 		612B9D002E375A87008B4C34 /* MVIDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MVIDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		612B9D102E375A88008B4C34 /* MVIDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MVIDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		612B9D1A2E375A88008B4C34 /* MVIDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MVIDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		615195312E3862B400BEEFB6 /* MVIDemoTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = MVIDemoTests.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +76,7 @@
 		612B9CF72E375A87008B4C34 = {
 			isa = PBXGroup;
 			children = (
+				615195312E3862B400BEEFB6 /* MVIDemoTests.xctestplan */,
 				612B9D022E375A87008B4C34 /* MVIDemo */,
 				612B9D132E375A88008B4C34 /* MVIDemoTests */,
 				612B9D1D2E375A88008B4C34 /* MVIDemoUITests */,

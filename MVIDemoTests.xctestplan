@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "DD259095-3EC0-4F47-AFCF-0ED78FC4372C",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:MVIDemo.xcodeproj",
+        "identifier" : "612B9D0F2E375A88008B4C34",
+        "name" : "MVIDemoTests"
+      }
+    }
+  ],
+  "version" : 1
+}

@@ -9,6 +9,38 @@
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
+		<key>MVIDemoTests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>isShown</key>
+			<true/>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>MVIDemoUITests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>isShown</key>
+			<true/>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>612B9CFF2E375A87008B4C34</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>612B9D0F2E375A88008B4C34</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>612B9D192E375A88008B4C34</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 	</dict>
 </dict>
 </plist>
