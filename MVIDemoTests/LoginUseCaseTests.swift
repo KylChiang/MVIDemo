@@ -3,8 +3,11 @@ import XCTest
 
 class MockAuthRepository: AuthRepository {
     var shouldLoginSucceed = true
+    var shouldLogoutSucceed = true
     var savedUser: User?
     var currentUser: User?
+    var logoutCalled = false
+    var clearUserCalled = false
     
     func login(account: String) async throws -> User {
         if shouldLoginSucceed {
@@ -15,7 +18,10 @@ class MockAuthRepository: AuthRepository {
     }
     
     func logout() async throws {
-        // Mock implementation
+        logoutCalled = true
+        if !shouldLogoutSucceed {
+            throw NSError(domain: "MockError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Mock logout error"])
+        }
     }
     
     func getCurrentUser() -> User? {
@@ -27,6 +33,7 @@ class MockAuthRepository: AuthRepository {
     }
     
     func clearUser() {
+        clearUserCalled = true
         savedUser = nil
         currentUser = nil
     }
