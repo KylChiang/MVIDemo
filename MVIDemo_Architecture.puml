@@ -1,5 +1,23 @@
 @startuml MVIDemo_Complete_Architecture
 
+' 設定字型和樣式
+skinparam {
+    DefaultFontName "Helvetica"
+    ClassFontName "Helvetica"
+    PackageFontName "Helvetica"
+    InterfaceFontName "Helvetica"
+    ActivityFontName "Helvetica"
+    ArrowFontName "Helvetica"
+    
+    FontColor black
+    BackgroundColor white
+    
+    RoundCorner 10
+    
+    ClassAttributeFontSize 11
+    ClassFontSize 12
+}
+
 !define DOMAIN_COLOR #E8F4FD
 !define DATA_COLOR #FFF2CC
 !define FEATURE_COLOR #E1D5E7
