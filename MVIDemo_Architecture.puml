@@ -1,0 +1,238 @@
+@startuml MVIDemo_Complete_Architecture
+
+!define DOMAIN_COLOR #E8F4FD
+!define DATA_COLOR #FFF2CC
+!define FEATURE_COLOR #E1D5E7
+!define APP_COLOR #D5E8D4
+
+package "Domain Layer" <<Frame>> DOMAIN_COLOR {
+    
+    package "Entities" {
+        class User {
+            + account: String
+            + token: String
+            + init(account: String, token: String)
+        }
+        
+        class Announcement {
+            + userId: Int
+            + id: Int
+            + title: String
+            + body: String
+            + init(userId: Int, id: Int, title: String, body: String)
+        }
+    }
+    
+    package "Repository Interfaces" {
+        interface AuthRepository {
+            + login(account: String) async throws -> User
+            + logout() async throws
+            + getCurrentUser() -> User?
+            + saveUser(_ user: User)
+            + clearUser()
+        }
+        
+        interface AnnouncementRepository {
+            + fetchAnnouncements() async throws -> [Announcement]
+        }
+    }
+    
+    package "Use Cases" {
+        class LoginUseCase {
+            - authRepository: AuthRepository
+            + init(authRepository: AuthRepository)
+            + execute(account: String) async throws -> User
+        }
+        
+        class LogoutUseCase {
+            - authRepository: AuthRepository
+            + init(authRepository: AuthRepository)
+            + execute() async throws
+        }
+        
+        class GetCurrentUserUseCase {
+            - authRepository: AuthRepository
+            + init(authRepository: AuthRepository)
+            + execute() -> User?
+        }
+        
+        class FetchAnnouncementsUseCase {
+            - announcementRepository: AnnouncementRepository
+            + init(announcementRepository: AnnouncementRepository)
+            + execute() async throws -> [Announcement]
+        }
+    }
+}
+
+package "Data Layer" <<Frame>> DATA_COLOR {
+    class AuthRepositoryImpl {
+        - userDefaults: UserDefaults
+        - userKey: String
+        + login(account: String) async throws -> User
+        + logout() async throws
+        + getCurrentUser() -> User?
+        + saveUser(_ user: User)
+        + clearUser()
+    }
+    
+    class AnnouncementRepositoryImpl {
+        + fetchAnnouncements() async throws -> [Announcement]
+    }
+}
+
+package "Features Layer" <<Frame>> FEATURE_COLOR {
+    
+    package "Login Feature" {
+        class LoginState {
+            + account: String
+            + isLoading: Bool
+            + isLoginEnabled: Bool
+            + errorMessage: String?
+            + user: User?
+            + init(account: String, isLoading: Bool, isLoginEnabled: Bool?, errorMessage: String?, user: User?)
+        }
+        
+        enum LoginIntent {
+            + accountChanged(String)
+            + loginButtonTapped
+        }
+        
+        class LoginReducer {
+            - loginUseCase: LoginUseCase
+            + init(loginUseCase: LoginUseCase)
+            + reduce(state: LoginState, intent: LoginIntent) async -> LoginState
+        }
+        
+        class LoginView {
+            - reducer: LoginReducer
+            - onLoginSuccess: (User) -> Void
+            + init(reducer: LoginReducer, onLoginSuccess: @escaping (User) -> Void)
+        }
+    }
+    
+    package "Home Feature" {
+        class HomeState {
+            + user: User?
+            + isLoading: Bool
+            + errorMessage: String?
+            + init(user: User?, isLoading: Bool, errorMessage: String?)
+        }
+        
+        enum HomeIntent {
+            + viewAppeared
+            + logoutButtonTapped
+        }
+        
+        class HomeReducer {
+            - getCurrentUserUseCase: GetCurrentUserUseCase
+            - logoutUseCase: LogoutUseCase
+            + init(getCurrentUserUseCase: GetCurrentUserUseCase, logoutUseCase: LogoutUseCase)
+            + reduce(state: HomeState, intent: HomeIntent) async -> HomeState
+        }
+        
+        class HomeView {
+            - reducer: HomeReducer
+            - onLogout: () -> Void
+            + init(reducer: HomeReducer, onLogout: @escaping () -> Void)
+        }
+    }
+    
+    package "Announcements Feature" {
+        class AnnouncementsState {
+            + announcements: [Announcement]
+            + isLoading: Bool
+            + errorMessage: String?
+            + init(announcements: [Announcement], isLoading: Bool, errorMessage: String?)
+        }
+        
+        enum AnnouncementsIntent {
+            + viewAppeared
+            + refreshButtonTapped
+        }
+        
+        class AnnouncementsReducer {
+            - fetchAnnouncementsUseCase: FetchAnnouncementsUseCase
+            + init(fetchAnnouncementsUseCase: FetchAnnouncementsUseCase)
+            + reduce(state: AnnouncementsState, intent: AnnouncementsIntent) async -> AnnouncementsState
+        }
+        
+        class AnnouncementsView {
+            - reducer: AnnouncementsReducer
+            + init(reducer: AnnouncementsReducer)
+        }
+    }
+}
+
+package "App Layer" <<Frame>> APP_COLOR {
+    class MVIDemoApp {
+        + body: some Scene
+    }
+    
+    class ContentView {
+        - dependencyContainer: DependencyContainer
+        - currentUser: User?
+        - showingLogin: Bool
+        + init()
+    }
+    
+    class DependencyContainer {
+        + authRepository: AuthRepository
+        + announcementRepository: AnnouncementRepository
+        + loginUseCase: LoginUseCase
+        + logoutUseCase: LogoutUseCase
+        + getCurrentUserUseCase: GetCurrentUserUseCase
+        + fetchAnnouncementsUseCase: FetchAnnouncementsUseCase
+        + loginReducer: LoginReducer
+        + homeReducer: HomeReducer
+        + announcementsReducer: AnnouncementsReducer
+        + init()
+    }
+}
+
+' Domain Layer Relationships
+LoginUseCase --> AuthRepository : uses
+LogoutUseCase --> AuthRepository : uses
+GetCurrentUserUseCase --> AuthRepository : uses
+FetchAnnouncementsUseCase --> AnnouncementRepository : uses
+
+' Data Layer Implementations
+AuthRepositoryImpl ..|> AuthRepository : implements
+AnnouncementRepositoryImpl ..|> AnnouncementRepository : implements
+
+' Feature Layer Dependencies
+LoginReducer --> LoginUseCase : uses
+LoginReducer --> LoginState : manages
+LoginReducer --> LoginIntent : handles
+LoginView --> LoginReducer : uses
+
+HomeReducer --> GetCurrentUserUseCase : uses
+HomeReducer --> LogoutUseCase : uses
+HomeReducer --> HomeState : manages
+HomeReducer --> HomeIntent : handles
+HomeView --> HomeReducer : uses
+
+AnnouncementsReducer --> FetchAnnouncementsUseCase : uses
+AnnouncementsReducer --> AnnouncementsState : manages
+AnnouncementsReducer --> AnnouncementsIntent : handles
+AnnouncementsView --> AnnouncementsReducer : uses
+
+' App Layer Dependencies
+ContentView --> DependencyContainer : uses
+DependencyContainer --> AuthRepositoryImpl : creates
+DependencyContainer --> AnnouncementRepositoryImpl : creates
+DependencyContainer --> LoginUseCase : creates
+DependencyContainer --> LogoutUseCase : creates
+DependencyContainer --> GetCurrentUserUseCase : creates
+DependencyContainer --> FetchAnnouncementsUseCase : creates
+DependencyContainer --> LoginReducer : creates
+DependencyContainer --> HomeReducer : creates
+DependencyContainer --> AnnouncementsReducer : creates
+
+' Entity Usage
+LoginState --> User : contains
+HomeState --> User : contains
+AnnouncementsState --> Announcement : contains
+AuthRepository --> User : returns
+AnnouncementRepository --> Announcement : returns
+
+@enduml
