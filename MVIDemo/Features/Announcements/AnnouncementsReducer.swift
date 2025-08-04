@@ -1,41 +1,28 @@
 import Foundation
 
-class AnnouncementsReducer: ObservableObject {
-    @Published var state = AnnouncementsState.initial
-    
-    private let fetchAnnouncementsUseCase: FetchAnnouncementsUseCase
-    
-    init(fetchAnnouncementsUseCase: FetchAnnouncementsUseCase) {
-        self.fetchAnnouncementsUseCase = fetchAnnouncementsUseCase
-    }
-    
-    func handle(_ intent: AnnouncementsIntent) {
+protocol AnnouncementsReducerProtocol {
+    func reduce(state: AnnouncementsState, intent: AnnouncementsIntent) -> AnnouncementsState
+}
+
+struct AnnouncementsReducer: AnnouncementsReducerProtocol {
+    func reduce(state: AnnouncementsState, intent: AnnouncementsIntent) -> AnnouncementsState {
         switch intent {
         case .fetchAnnouncements, .refreshAnnouncements:
-            state = AnnouncementsState(
+            return AnnouncementsState(
                 announcements: state.announcements,
                 isLoading: true,
                 errorMessage: nil
             )
             
-            Task { @MainActor in
-                do {
-                    let announcements = try await fetchAnnouncementsUseCase.execute()
-                    handle(.fetchSuccess(announcements))
-                } catch {
-                    handle(.fetchFailure(error))
-                }
-            }
-            
         case .fetchSuccess(let announcements):
-            state = AnnouncementsState(
+            return AnnouncementsState(
                 announcements: announcements,
                 isLoading: false,
                 errorMessage: nil
             )
             
         case .fetchFailure(let error):
-            state = AnnouncementsState(
+            return AnnouncementsState(
                 announcements: state.announcements,
                 isLoading: false,
                 errorMessage: error.localizedDescription

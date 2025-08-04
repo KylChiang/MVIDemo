@@ -1,11 +1,11 @@
 import SwiftUI
 
 struct LoginView: View {
-    @StateObject private var reducer: LoginReducer
+    @StateObject private var model: LoginModel
     @Binding var isLoggedIn: Bool
     
-    init(reducer: LoginReducer, isLoggedIn: Binding<Bool>) {
-        self._reducer = StateObject(wrappedValue: reducer)
+    init(model: LoginModel, isLoggedIn: Binding<Bool>) {
+        self._model = StateObject(wrappedValue: model)
         self._isLoggedIn = isLoggedIn
     }
     
@@ -17,32 +17,35 @@ struct LoginView: View {
                     .fontWeight(.bold)
                 
                 TextField("請輸入帳號", text: .init(
-                    get: { reducer.state.account },
-                    set: { reducer.handle(.accountChanged($0)) }
+                    get: { model.state.account },
+                    set: { model.handle(.accountChanged($0)) }
                 ))
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-                .disabled(reducer.state.isLoading)
+                .disabled(model.state.isLoading)
                 
                 Button("登入") {
-                    reducer.handle(.loginClicked)
+                    model.handle(.loginClicked)
                 }
-                .disabled(!reducer.state.isLoginEnabled || reducer.state.isLoading)
+                .disabled(!model.state.isLoginEnabled || model.state.isLoading)
                 .buttonStyle(.borderedProminent)
                 
-                if reducer.state.isLoading {
+                if model.state.isLoading {
                     ProgressView("登入中...")
                 }
                 
-                if let errorMessage = reducer.state.errorMessage {
+                if let errorMessage = model.state.errorMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
                         .font(.caption)
+                        .onTapGesture {
+                            model.handle(.clearError)
+                        }
                 }
             }
             .padding()
             .navigationBarHidden(true)
         }
-        .onChange(of: reducer.state.user) { user in
+        .onChange(of: model.state.user) { user in
             if user != nil {
                 isLoggedIn = true
             }

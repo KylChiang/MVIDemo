@@ -11,16 +11,45 @@ class DependencyContainer {
     lazy var getCurrentUserUseCase = GetCurrentUserUseCase(authRepository: authRepository)
     lazy var fetchAnnouncementsUseCase = FetchAnnouncementsUseCase(announcementRepository: announcementRepository)
     
+    // MARK: - Core Components
+    lazy var effectHandler = EffectHandler()
+    
     // MARK: - Reducers
     func makeLoginReducer() -> LoginReducer {
-        return LoginReducer(loginUseCase: loginUseCase)
+        return LoginReducer()
     }
     
     func makeHomeReducer() -> HomeReducer {
-        return HomeReducer(getCurrentUserUseCase: getCurrentUserUseCase, logoutUseCase: logoutUseCase)
+        return HomeReducer()
     }
     
     func makeAnnouncementsReducer() -> AnnouncementsReducer {
-        return AnnouncementsReducer(fetchAnnouncementsUseCase: fetchAnnouncementsUseCase)
+        return AnnouncementsReducer()
+    }
+    
+    // MARK: - Models
+    func makeLoginModel() -> LoginModel {
+        return LoginModel(
+            reducer: makeLoginReducer(),
+            loginUseCase: loginUseCase,
+            effectHandler: effectHandler
+        )
+    }
+    
+    func makeHomeModel() -> HomeModel {
+        return HomeModel(
+            reducer: makeHomeReducer(),
+            getCurrentUserUseCase: getCurrentUserUseCase,
+            logoutUseCase: logoutUseCase,
+            effectHandler: effectHandler
+        )
+    }
+    
+    func makeAnnouncementsModel() -> AnnouncementsModel {
+        return AnnouncementsModel(
+            reducer: makeAnnouncementsReducer(),
+            fetchAnnouncementsUseCase: fetchAnnouncementsUseCase,
+            effectHandler: effectHandler
+        )
     }
 }
