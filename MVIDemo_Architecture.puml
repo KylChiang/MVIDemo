@@ -1,4 +1,4 @@
-@startuml MVIDemo_Complete_Architecture
+@startuml MVIDemo_New_Architecture
 
 ' 設定字型和樣式
 skinparam {
@@ -14,14 +14,67 @@ skinparam {
     
     RoundCorner 10
     
-    ClassAttributeFontSize 11
-    ClassFontSize 12
+    ClassAttributeFontSize 10
+    ClassFontSize 11
 }
 
 !define DOMAIN_COLOR #E8F4FD
 !define DATA_COLOR #FFF2CC
 !define FEATURE_COLOR #E1D5E7
+!define CORE_COLOR #FFE6CC
 !define APP_COLOR #D5E8D4
+
+title MVIDemo - New MVI Architecture
+' note top : Intent -> UseCase -> Reducer -> Model -> Effect
+
+package "Core Layer" {
+    interface ModelProtocol {
+        + Intent
+        + State
+        + state: State
+        + handle(intent: Intent)
+    }
+
+    interface Effect {
+        + execute()
+    }
+
+    class EffectHandler {
+        + handle(effect: Effect)
+    }
+
+    package "Effect Implementations" {
+        class NavigationEffect {
+            + destination: View
+            + navigationController: NavigationController
+            + execute()
+        }
+
+        class AlertEffect {
+            + title: String
+            + message: String
+            + actions: AlertAction[]
+            + execute()
+        }
+
+        class ToastEffect {
+            + message: String
+            + duration: Number
+            + execute()
+        }
+
+        class HapticEffect {
+            + type: FeedbackStyle
+            + execute()
+        }
+    }
+
+    class AlertAction {
+        + title: String
+        + style: ActionStyle
+        + handler: Handler
+    }
+}
 
 package "Domain Layer" <<Frame>> DOMAIN_COLOR {
     
@@ -43,15 +96,15 @@ package "Domain Layer" <<Frame>> DOMAIN_COLOR {
     
     package "Repository Interfaces" {
         interface AuthRepository {
-            + login(account: String) async throws -> User
+            + login(account: String) async throws User
             + logout() async throws
-            + getCurrentUser() -> User?
-            + saveUser(_ user: User)
+            + getCurrentUser() User
+            + saveUser(user: User)
             + clearUser()
         }
         
         interface AnnouncementRepository {
-            + fetchAnnouncements() async throws -> [Announcement]
+            + fetchAnnouncements() async throws Announcement[]
         }
     }
     
@@ -59,7 +112,7 @@ package "Domain Layer" <<Frame>> DOMAIN_COLOR {
         class LoginUseCase {
             - authRepository: AuthRepository
             + init(authRepository: AuthRepository)
-            + execute(account: String) async throws -> User
+            + execute(account: String) async throws User
         }
         
         class LogoutUseCase {
@@ -71,13 +124,13 @@ package "Domain Layer" <<Frame>> DOMAIN_COLOR {
         class GetCurrentUserUseCase {
             - authRepository: AuthRepository
             + init(authRepository: AuthRepository)
-            + execute() -> User?
+            + execute() User
         }
         
         class FetchAnnouncementsUseCase {
             - announcementRepository: AnnouncementRepository
             + init(announcementRepository: AnnouncementRepository)
-            + execute() async throws -> [Announcement]
+            + execute() async throws List<Announcement>
         }
     }
 }
@@ -86,97 +139,170 @@ package "Data Layer" <<Frame>> DATA_COLOR {
     class AuthRepositoryImpl {
         - userDefaults: UserDefaults
         - userKey: String
-        + login(account: String) async throws -> User
+        + login(account: String) async throws User
         + logout() async throws
-        + getCurrentUser() -> User?
-        + saveUser(_ user: User)
+        + getCurrentUser() User
+        + saveUser(user: User)
         + clearUser()
     }
     
     class AnnouncementRepositoryImpl {
-        + fetchAnnouncements() async throws -> [Announcement]
+        + fetchAnnouncements() async throws List<Announcement>
     }
 }
 
 package "Features Layer" <<Frame>> FEATURE_COLOR {
     
     package "Login Feature" {
+        enum LoginIntent {
+            + accountChanged(String)
+            + loginClicked
+            + loginSuccess(User)
+            + loginFailure(Error)
+            + clearError
+        }
+        
         class LoginState {
             + account: String
             + isLoading: Bool
             + isLoginEnabled: Bool
-            + errorMessage: String?
-            + user: User?
-            + init(account: String, isLoading: Bool, isLoginEnabled: Bool?, errorMessage: String?, user: User?)
+            + errorMessage: String
+            + user: User
+            + init(account: String, isLoading: Bool, isLoginEnabled: Bool, errorMessage: String, user: User)
+            + static let initial: LoginState
         }
         
-        enum LoginIntent {
-            + accountChanged(String)
-            + loginButtonTapped
+        interface LoginReducerProtocol {
+            + reduce(state: LoginState, intent: LoginIntent) LoginState
         }
         
         class LoginReducer {
+            + reduce(state: LoginState, intent: LoginIntent) LoginState
+        }
+        
+        enum LoginEffect {
+            + showLoginSuccess
+            + showLoginError(String)
+            + navigateToHome
+            + hapticFeedback
+            + toEffect() Effect
+        }
+        
+        class LoginModel {
+            - reducer: LoginReducerProtocol
             - loginUseCase: LoginUseCase
-            + init(loginUseCase: LoginUseCase)
-            + reduce(state: LoginState, intent: LoginIntent) async -> LoginState
+            - effectHandler: EffectHandler
+            + state: LoginState
+            + init(reducer: LoginReducerProtocol, loginUseCase: LoginUseCase, effectHandler: EffectHandler)
+            + handle(intent: LoginIntent)
         }
         
         class LoginView {
-            - reducer: LoginReducer
-            - onLoginSuccess: (User) -> Void
-            + init(reducer: LoginReducer, onLoginSuccess: @escaping (User) -> Void)
+            - model: LoginModel
+            - isLoggedIn: Binding
+            + init(model: LoginModel, isLoggedIn: Binding)
         }
     }
     
     package "Home Feature" {
-        class HomeState {
-            + user: User?
-            + isLoading: Bool
-            + errorMessage: String?
-            + init(user: User?, isLoading: Bool, errorMessage: String?)
-        }
-        
         enum HomeIntent {
             + viewAppeared
-            + logoutButtonTapped
+            + userLoaded(User)
+            + logoutClicked
+            + logoutSuccess
+            + logoutFailure(Error)
+            + openAnnouncements
+            + clearNavigationFlag
+        }
+        
+        class HomeState {
+            + user: User
+            + isLoading: Bool
+            + errorMessage: String
+            + shouldNavigateToAnnouncements: Bool
+            + init(user: User, isLoading: Bool, errorMessage: String, shouldNavigateToAnnouncements: Bool)
+            + static let initial: HomeState
+        }
+        
+        interface HomeReducerProtocol {
+            + reduce(state: HomeState, intent: HomeIntent) HomeState
         }
         
         class HomeReducer {
+            + reduce(state: HomeState, intent: HomeIntent) HomeState
+        }
+        
+        enum HomeEffect {
+            + showLogoutSuccess
+            + showLogoutError(String)
+            + navigateToLogin
+            + navigateToAnnouncements
+            + hapticFeedback
+            + toEffect() Effect
+        }
+        
+        class HomeModel {
+            - reducer: HomeReducerProtocol
             - getCurrentUserUseCase: GetCurrentUserUseCase
             - logoutUseCase: LogoutUseCase
-            + init(getCurrentUserUseCase: GetCurrentUserUseCase, logoutUseCase: LogoutUseCase)
-            + reduce(state: HomeState, intent: HomeIntent) async -> HomeState
+            - effectHandler: EffectHandler
+            + state: HomeState
+            + init(reducer: HomeReducerProtocol, getCurrentUserUseCase: GetCurrentUserUseCase, logoutUseCase: LogoutUseCase, effectHandler: EffectHandler)
+            + handle(intent: HomeIntent)
         }
         
         class HomeView {
-            - reducer: HomeReducer
-            - onLogout: () -> Void
-            + init(reducer: HomeReducer, onLogout: @escaping () -> Void)
+            - homeModel: HomeModel
+            - announcementsModel: AnnouncementsModel
+            - isLoggedIn: Binding
+            + init(homeModel: HomeModel, announcementsModel: AnnouncementsModel, isLoggedIn: Binding)
         }
     }
     
     package "Announcements Feature" {
-        class AnnouncementsState {
-            + announcements: [Announcement]
-            + isLoading: Bool
-            + errorMessage: String?
-            + init(announcements: [Announcement], isLoading: Bool, errorMessage: String?)
+        enum AnnouncementsIntent {
+            + fetchAnnouncements
+            + fetchSuccess(List<Announcement>)
+            + fetchFailure(Error)
+            + refreshAnnouncements
         }
         
-        enum AnnouncementsIntent {
-            + viewAppeared
-            + refreshButtonTapped
+        class AnnouncementsState {
+            + announcements: List<Announcement>
+            + isLoading: Bool
+            + errorMessage: String
+            + init(announcements: List<Announcement>, isLoading: Bool, errorMessage: String)
+            + static let initial: AnnouncementsState
+        }
+        
+        interface AnnouncementsReducerProtocol {
+            + reduce(state: AnnouncementsState, intent: AnnouncementsIntent) AnnouncementsState
         }
         
         class AnnouncementsReducer {
+            + reduce(state: AnnouncementsState, intent: AnnouncementsIntent) AnnouncementsState
+        }
+        
+        enum AnnouncementsEffect {
+            + showFetchSuccess
+            + showFetchError(String)
+            + hapticFeedback
+            + refreshComplete
+            + toEffect() Effect
+        }
+        
+        class AnnouncementsModel {
+            - reducer: AnnouncementsReducerProtocol
             - fetchAnnouncementsUseCase: FetchAnnouncementsUseCase
-            + init(fetchAnnouncementsUseCase: FetchAnnouncementsUseCase)
-            + reduce(state: AnnouncementsState, intent: AnnouncementsIntent) async -> AnnouncementsState
+            - effectHandler: EffectHandler
+            + state: AnnouncementsState
+            + init(reducer: AnnouncementsReducerProtocol, fetchAnnouncementsUseCase: FetchAnnouncementsUseCase, effectHandler: EffectHandler)
+            + handle(intent: AnnouncementsIntent)
         }
         
         class AnnouncementsView {
-            - reducer: AnnouncementsReducer
-            + init(reducer: AnnouncementsReducer)
+            - model: AnnouncementsModel
+            + init(model: AnnouncementsModel)
         }
     }
 }
@@ -188,9 +314,8 @@ package "App Layer" <<Frame>> APP_COLOR {
     
     class ContentView {
         - dependencyContainer: DependencyContainer
-        - currentUser: User?
-        - showingLogin: Bool
-        + init()
+        - isLoggedIn: State
+        + init(dependencyContainer: DependencyContainer)
     }
     
     class DependencyContainer {
@@ -200,12 +325,23 @@ package "App Layer" <<Frame>> APP_COLOR {
         + logoutUseCase: LogoutUseCase
         + getCurrentUserUseCase: GetCurrentUserUseCase
         + fetchAnnouncementsUseCase: FetchAnnouncementsUseCase
-        + loginReducer: LoginReducer
-        + homeReducer: HomeReducer
-        + announcementsReducer: AnnouncementsReducer
-        + init()
+        + effectHandler: EffectHandler
+        + makeLoginReducer() LoginReducer
+        + makeHomeReducer() HomeReducer
+        + makeAnnouncementsReducer() AnnouncementsReducer
+        + makeLoginModel() LoginModel
+        + makeHomeModel() HomeModel
+        + makeAnnouncementsModel() AnnouncementsModel
     }
 }
+
+' Core Layer Relationships
+NavigationEffect ..|> Effect : implements
+AlertEffect ..|> Effect : implements
+ToastEffect ..|> Effect : implements
+HapticEffect ..|> Effect : implements
+AlertEffect --> AlertAction : uses
+EffectHandler --> Effect : handles
 
 ' Domain Layer Relationships
 LoginUseCase --> AuthRepository : uses
@@ -217,22 +353,45 @@ FetchAnnouncementsUseCase --> AnnouncementRepository : uses
 AuthRepositoryImpl ..|> AuthRepository : implements
 AnnouncementRepositoryImpl ..|> AnnouncementRepository : implements
 
-' Feature Layer Dependencies
-LoginReducer --> LoginUseCase : uses
-LoginReducer --> LoginState : manages
+' Login Feature - MVI Flow
+LoginView --> LoginModel : uses
+LoginModel ..|> ModelProtocol : implements
+LoginModel --> LoginReducerProtocol : uses
+LoginModel --> LoginUseCase : uses
+LoginModel --> EffectHandler : uses
+LoginModel --> LoginState : manages
+LoginReducer ..|> LoginReducerProtocol : implements
+LoginReducer --> LoginState : calculates
 LoginReducer --> LoginIntent : handles
-LoginView --> LoginReducer : uses
+LoginEffect --> Effect : creates
+LoginModel --> LoginEffect : triggers
 
-HomeReducer --> GetCurrentUserUseCase : uses
-HomeReducer --> LogoutUseCase : uses
-HomeReducer --> HomeState : manages
+' Home Feature - MVI Flow
+HomeView --> HomeModel : uses
+HomeModel ..|> ModelProtocol : implements
+HomeModel --> HomeReducerProtocol : uses
+HomeModel --> GetCurrentUserUseCase : uses
+HomeModel --> LogoutUseCase : uses
+HomeModel --> EffectHandler : uses
+HomeModel --> HomeState : manages
+HomeReducer ..|> HomeReducerProtocol : implements
+HomeReducer --> HomeState : calculates
 HomeReducer --> HomeIntent : handles
-HomeView --> HomeReducer : uses
+HomeEffect --> Effect : creates
+HomeModel --> HomeEffect : triggers
 
-AnnouncementsReducer --> FetchAnnouncementsUseCase : uses
-AnnouncementsReducer --> AnnouncementsState : manages
+' Announcements Feature - MVI Flow
+AnnouncementsView --> AnnouncementsModel : uses
+AnnouncementsModel ..|> ModelProtocol : implements
+AnnouncementsModel --> AnnouncementsReducerProtocol : uses
+AnnouncementsModel --> FetchAnnouncementsUseCase : uses
+AnnouncementsModel --> EffectHandler : uses
+AnnouncementsModel --> AnnouncementsState : manages
+AnnouncementsReducer ..|> AnnouncementsReducerProtocol : implements
+AnnouncementsReducer --> AnnouncementsState : calculates
 AnnouncementsReducer --> AnnouncementsIntent : handles
-AnnouncementsView --> AnnouncementsReducer : uses
+AnnouncementsEffect --> Effect : creates
+AnnouncementsModel --> AnnouncementsEffect : triggers
 
 ' App Layer Dependencies
 ContentView --> DependencyContainer : uses
@@ -242,9 +401,10 @@ DependencyContainer --> LoginUseCase : creates
 DependencyContainer --> LogoutUseCase : creates
 DependencyContainer --> GetCurrentUserUseCase : creates
 DependencyContainer --> FetchAnnouncementsUseCase : creates
-DependencyContainer --> LoginReducer : creates
-DependencyContainer --> HomeReducer : creates
-DependencyContainer --> AnnouncementsReducer : creates
+DependencyContainer --> EffectHandler : creates
+DependencyContainer --> LoginModel : creates
+DependencyContainer --> HomeModel : creates
+DependencyContainer --> AnnouncementsModel : creates
 
 ' Entity Usage
 LoginState --> User : contains
@@ -252,5 +412,12 @@ HomeState --> User : contains
 AnnouncementsState --> Announcement : contains
 AuthRepository --> User : returns
 AnnouncementRepository --> Announcement : returns
+
+' MVI Flow Annotations
+note right of LoginModel : 流程控制中心\n決定何時呼叫 UseCase\n發出 Intent 給 Reducer\n拋出 Effect
+note right of LoginReducer : 只是計算狀態\n不做網路、不做動畫\n不做導頁
+note right of LoginIntent : 只描述「要做什麼」\n不包含邏輯處理
+note right of LoginUseCase : 只處理「怎麼做」\n不處理 UI
+note right of LoginEffect : 處理「不是狀態」的畫面反應\n例如跳轉、錯誤提示、震動
 
 @enduml
