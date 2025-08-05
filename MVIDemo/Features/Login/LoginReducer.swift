@@ -8,11 +8,10 @@ struct LoginReducer: LoginReducerProtocol {
     func reduce(state: LoginState, intent: LoginIntent) -> LoginState {
         switch intent {
         case .accountChanged(let account):
-            let validatedAccount = String(account.prefix(10))
             return LoginState(
-                account: validatedAccount,
+                account: account,
                 isLoading: state.isLoading,
-                isLoginEnabled: !validatedAccount.isEmpty && !state.isLoading,
+                isLoginEnabled: !account.isEmpty && !state.isLoading,
                 errorMessage: nil,
                 user: state.user
             )

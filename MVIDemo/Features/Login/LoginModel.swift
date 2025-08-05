@@ -15,25 +15,33 @@ class LoginModel: ModelProtocol, ObservableObject {
     
     private let reducer: LoginReducerProtocol
     private let loginUseCase: LoginUseCase
+    private let accountValidationUseCase: AccountValidationUseCase
     private let effectHandler: EffectHandler
     
     init(
         reducer: LoginReducerProtocol,
         loginUseCase: LoginUseCase,
+        accountValidationUseCase: AccountValidationUseCase,
         effectHandler: EffectHandler
     ) {
         self.reducer = reducer
         self.loginUseCase = loginUseCase
+        self.accountValidationUseCase = accountValidationUseCase
         self.effectHandler = effectHandler
     }
     
     func handle(_ intent: LoginIntent) {
         switch intent {
         case .accountChanged(let account):
-            if account.count > 10 {
-                handle(.accountValidationFailed("帳號最多只能輸入10個字"))
-            } else {
-                state = reducer.reduce(state: state, intent: intent)
+            let validationResult = accountValidationUseCase.validate(account)
+            
+            switch validationResult {
+            case .valid(let validAccount):
+                state = reducer.reduce(state: state, intent: .accountChanged(validAccount))
+                
+            case .invalid(let truncatedAccount, let message):
+                state = reducer.reduce(state: state, intent: .accountChanged(truncatedAccount))
+                handle(.accountValidationFailed(message))
             }
             
         case .clearError:

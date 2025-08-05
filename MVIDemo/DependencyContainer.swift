@@ -10,6 +10,7 @@ class DependencyContainer {
     lazy var logoutUseCase = LogoutUseCase(authRepository: authRepository)
     lazy var getCurrentUserUseCase = GetCurrentUserUseCase(authRepository: authRepository)
     lazy var fetchAnnouncementsUseCase = FetchAnnouncementsUseCase(announcementRepository: announcementRepository)
+    lazy var accountValidationUseCase: AccountValidationUseCase = AccountValidationUseCaseImpl()
     
     // MARK: - Core Components
     lazy var effectHandler = EffectHandler()
@@ -32,6 +33,7 @@ class DependencyContainer {
         return LoginModel(
             reducer: makeLoginReducer(),
             loginUseCase: loginUseCase,
+            accountValidationUseCase: accountValidationUseCase,
             effectHandler: effectHandler
         )
     }
