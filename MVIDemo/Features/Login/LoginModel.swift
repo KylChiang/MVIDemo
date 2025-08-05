@@ -32,7 +32,6 @@ class LoginModel: ModelProtocol, ObservableObject {
         case .accountChanged(let account):
             if account.count > 10 {
                 handle(.accountValidationFailed("帳號最多只能輸入10個字"))
-                effectHandler.handle(LoginEffect.showValidationError("帳號最多只能輸入10個字").toEffect())
             } else {
                 state = reducer.reduce(state: state, intent: intent)
             }
