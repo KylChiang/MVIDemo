@@ -28,6 +28,7 @@ struct LoginView: View {
                 }
                 .disabled(!model.state.isLoginEnabled || model.state.isLoading)
                 .buttonStyle(.borderedProminent)
+                .background(Color.white)
                 
                 if model.state.isLoading {
                     ProgressView("登入中...")
@@ -43,6 +44,7 @@ struct LoginView: View {
                 }
             }
             .padding()
+            .background(Color.indigo)
             .navigationBarHidden(true)
         }
         .onChange(of: model.state.user) { user in
