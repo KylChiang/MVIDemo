@@ -29,7 +29,15 @@ class LoginModel: ModelProtocol, ObservableObject {
     
     func handle(_ intent: LoginIntent) {
         switch intent {
-        case .accountChanged, .clearError:
+        case .accountChanged(let account):
+            if account.count > 10 {
+                handle(.accountValidationFailed("帳號最多只能輸入10個字"))
+                effectHandler.handle(LoginEffect.showValidationError("帳號最多只能輸入10個字").toEffect())
+            } else {
+                state = reducer.reduce(state: state, intent: intent)
+            }
+            
+        case .clearError:
             state = reducer.reduce(state: state, intent: intent)
             
         case .loginClicked:
@@ -50,7 +58,7 @@ class LoginModel: ModelProtocol, ObservableObject {
                 }
             }
             
-        case .loginSuccess, .loginFailure:
+        case .loginSuccess, .loginFailure, .accountValidationFailed:
             state = reducer.reduce(state: state, intent: intent)
         }
     }

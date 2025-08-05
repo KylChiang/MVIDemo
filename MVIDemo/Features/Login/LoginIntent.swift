@@ -6,6 +6,7 @@ enum LoginIntent: Equatable {
     case loginSuccess(User)
     case loginFailure(Error)
     case clearError
+    case accountValidationFailed(String)
     
     static func == (lhs: LoginIntent, rhs: LoginIntent) -> Bool {
         switch (lhs, rhs) {
@@ -19,6 +20,8 @@ enum LoginIntent: Equatable {
             return lhsError.localizedDescription == rhsError.localizedDescription
         case (.clearError, .clearError):
             return true
+        case (.accountValidationFailed(let lhsMessage), .accountValidationFailed(let rhsMessage)):
+            return lhsMessage == rhsMessage
         default:
             return false
         }

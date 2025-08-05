@@ -11,6 +11,7 @@ import SwiftUI
 enum LoginEffect {
     case showLoginSuccess
     case showLoginError(String)
+    case showValidationError(String)
     case navigateToHome
     case hapticFeedback
     
@@ -22,6 +23,8 @@ enum LoginEffect {
             return AlertEffect(title: "登入失敗", message: message, actions: [
                 AlertAction(title: "確定", style: .default)
             ])
+        case .showValidationError(let message):
+            return ToastEffect(message: message, duration: 2.0)
         case .navigateToHome:
             return NavigationEffect(destination: AnyView(EmptyView()), navigationController: nil)
         case .hapticFeedback:
