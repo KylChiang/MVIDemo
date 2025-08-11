@@ -5,6 +5,22 @@
 //  Created by Kylie on 2025/8/4.
 //
 
+/*
+ 
+ Presenter → Model
+
+   // 舊 MVP: Presenter 處理 UI 邏輯
+   class LoginPresenter {
+       func login(account: String) { /* 處理登入邏輯 */ }
+   }
+
+   // 新 MVI: Model 處理 Intent
+   class LoginModel: ModelProtocol {
+       func handle(_ intent: LoginIntent) { /* 統一處理所有意圖 */ }
+   }
+ 
+ */
+
 import Foundation
 
 class LoginModel: ModelProtocol, ObservableObject {

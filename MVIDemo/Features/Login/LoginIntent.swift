@@ -1,3 +1,18 @@
+
+/*
+ 
+ Intent 統一用戶行為
+
+   // MVI 新增：明確定義所有用戶意圖
+   enum LoginIntent {
+       case accountChanged(String)
+       case loginClicked
+       case loginSuccess(User)
+       case loginFailure(Error)
+   }
+ 
+ */
+
 import Foundation
 
 enum LoginIntent: Equatable {

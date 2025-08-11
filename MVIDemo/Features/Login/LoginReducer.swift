@@ -1,3 +1,18 @@
+
+/*
+ 
+ Reducer 純函數狀態更新
+ ** 將 Presenter 中的狀態更新邏輯遷移到 Reducer
+
+   // MVI 新增：純函數處理『狀態變更』
+   struct LoginReducer {
+       func reduce(state: LoginState, intent: LoginIntent) -> LoginState {
+           // 根據 Intent 返回新的 State
+       }
+   }
+ 
+ */
+
 import Foundation
 
 protocol LoginReducerProtocol {
