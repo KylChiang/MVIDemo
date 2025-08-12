@@ -22,13 +22,13 @@ struct ContentView: View {
     var body: some View {
         if isLoggedIn {
             HomeView(
-                homeReducer: dependencyContainer.makeHomeReducer(),
-                announcementsReducer: dependencyContainer.makeAnnouncementsReducer(),
+                homeModel: dependencyContainer.makeHomeModel(),
+                announcementsModel: dependencyContainer.makeAnnouncementsModel(),
                 isLoggedIn: $isLoggedIn
             )
         } else {
             LoginView(
-                reducer: dependencyContainer.makeLoginReducer(),
+                model: dependencyContainer.makeLoginModel(),
                 isLoggedIn: $isLoggedIn
             )
         }

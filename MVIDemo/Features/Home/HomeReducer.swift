@@ -1,21 +1,14 @@
 import Foundation
 
-class HomeReducer: ObservableObject {
-    @Published var state = HomeState.initial
-    
-    private let getCurrentUserUseCase: GetCurrentUserUseCase
-    private let logoutUseCase: LogoutUseCase
-    
-    init(getCurrentUserUseCase: GetCurrentUserUseCase, logoutUseCase: LogoutUseCase) {
-        self.getCurrentUserUseCase = getCurrentUserUseCase
-        self.logoutUseCase = logoutUseCase
-    }
-    
-    func handle(_ intent: HomeIntent) {
+protocol HomeReducerProtocol {
+    func reduce(state: HomeState, intent: HomeIntent) -> HomeState
+}
+
+struct HomeReducer: HomeReducerProtocol {
+    func reduce(state: HomeState, intent: HomeIntent) -> HomeState {
         switch intent {
-        case .viewAppeared:
-            let user = getCurrentUserUseCase.execute()
-            state = HomeState(
+        case .userLoaded(let user):
+            return HomeState(
                 user: user,
                 isLoading: false,
                 errorMessage: nil,
@@ -23,24 +16,15 @@ class HomeReducer: ObservableObject {
             )
             
         case .logoutClicked:
-            state = HomeState(
+            return HomeState(
                 user: state.user,
                 isLoading: true,
                 errorMessage: nil,
                 shouldNavigateToAnnouncements: false
             )
             
-            Task { @MainActor in
-                do {
-                    try await logoutUseCase.execute()
-                    handle(.logoutSuccess)
-                } catch {
-                    handle(.logoutFailure(error))
-                }
-            }
-            
         case .logoutSuccess:
-            state = HomeState(
+            return HomeState(
                 user: nil,
                 isLoading: false,
                 errorMessage: nil,
@@ -48,7 +32,7 @@ class HomeReducer: ObservableObject {
             )
             
         case .logoutFailure(let error):
-            state = HomeState(
+            return HomeState(
                 user: state.user,
                 isLoading: false,
                 errorMessage: error.localizedDescription,
@@ -56,11 +40,27 @@ class HomeReducer: ObservableObject {
             )
             
         case .openAnnouncements:
-            state = HomeState(
+            return HomeState(
                 user: state.user,
                 isLoading: state.isLoading,
                 errorMessage: state.errorMessage,
                 shouldNavigateToAnnouncements: true
+            )
+            
+        case .viewAppeared:
+            return HomeState(
+                user: state.user,
+                isLoading: true,
+                errorMessage: nil,
+                shouldNavigateToAnnouncements: false
+            )
+            
+        case .clearNavigationFlag:
+            return HomeState(
+                user: state.user,
+                isLoading: state.isLoading,
+                errorMessage: state.errorMessage,
+                shouldNavigateToAnnouncements: false
             )
         }
     }

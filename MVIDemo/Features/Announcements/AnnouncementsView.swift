@@ -1,37 +1,37 @@
 import SwiftUI
 
 struct AnnouncementsView: View {
-    @StateObject private var reducer: AnnouncementsReducer
+    @StateObject private var model: AnnouncementsModel
     @Environment(\.dismiss) private var dismiss
     
-    init(reducer: AnnouncementsReducer) {
-        self._reducer = StateObject(wrappedValue: reducer)
+    init(model: AnnouncementsModel) {
+        self._model = StateObject(wrappedValue: model)
     }
     
     var body: some View {
         NavigationView {
             VStack {
-                if reducer.state.isLoading && reducer.state.announcements.isEmpty {
+                if model.state.isLoading && model.state.announcements.isEmpty {
                     VStack {
                         ProgressView("載入中...")
                         Spacer()
                     }
-                } else if reducer.state.announcements.isEmpty && !reducer.state.isLoading {
+                } else if model.state.announcements.isEmpty && !model.state.isLoading {
                     VStack {
                         Text("暫無公告")
                             .foregroundColor(.gray)
                         Spacer()
                     }
                 } else {
-                    List(reducer.state.announcements) { announcement in
+                    List(model.state.announcements) { announcement in
                         AnnouncementRowView(announcement: announcement)
                     }
                     .refreshable {
-                        reducer.handle(.refreshAnnouncements)
+                        model.handle(.refreshAnnouncements)
                     }
                 }
                 
-                if let errorMessage = reducer.state.errorMessage {
+                if let errorMessage = model.state.errorMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
                         .font(.caption)
@@ -49,7 +49,7 @@ struct AnnouncementsView: View {
             }
         }
         .onAppear {
-            reducer.handle(.fetchAnnouncements)
+            model.handle(.fetchAnnouncements)
         }
     }
 }

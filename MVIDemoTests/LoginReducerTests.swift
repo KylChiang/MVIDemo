@@ -2,91 +2,106 @@ import XCTest
 @testable import MVIDemo
 
 final class LoginReducerTests: XCTestCase {
-    var mockRepository: MockAuthRepository!
-    var loginUseCase: LoginUseCase!
     var reducer: LoginReducer!
     
     override func setUp() {
         super.setUp()
-        mockRepository = MockAuthRepository()
-        loginUseCase = LoginUseCase(authRepository: mockRepository)
-        reducer = LoginReducer(loginUseCase: loginUseCase)
+        reducer = LoginReducer()
     }
     
     override func tearDown() {
-        mockRepository = nil
-        loginUseCase = nil
         reducer = nil
         super.tearDown()
     }
     
     func testAccountChanged() {
         // Given
+        let initialState = LoginState.initial
         let account = "testUser"
         
         // When
-        reducer.handle(.accountChanged(account))
+        let newState = reducer.reduce(state: initialState, intent: .accountChanged(account))
         
         // Then
-        XCTAssertEqual(reducer.state.account, account)
-        XCTAssertTrue(reducer.state.isLoginEnabled)
-        XCTAssertFalse(reducer.state.isLoading)
-        XCTAssertNil(reducer.state.errorMessage)
+        XCTAssertEqual(newState.account, account)
+        XCTAssertTrue(newState.isLoginEnabled)
+        XCTAssertFalse(newState.isLoading)
+        XCTAssertNil(newState.errorMessage)
     }
     
     func testAccountChangedWithEmptyString() {
         // Given
+        let initialState = LoginState.initial
         let account = ""
         
         // When
-        reducer.handle(.accountChanged(account))
+        let newState = reducer.reduce(state: initialState, intent: .accountChanged(account))
         
         // Then
-        XCTAssertEqual(reducer.state.account, account)
-        XCTAssertFalse(reducer.state.isLoginEnabled)
-        XCTAssertFalse(reducer.state.isLoading)
-        XCTAssertNil(reducer.state.errorMessage)
+        XCTAssertEqual(newState.account, account)
+        XCTAssertFalse(newState.isLoginEnabled)
+        XCTAssertFalse(newState.isLoading)
+        XCTAssertNil(newState.errorMessage)
     }
     
     func testLoginClicked() {
         // Given
-        reducer.handle(.accountChanged("testUser"))
-        mockRepository.shouldLoginSucceed = true
+        let initialState = LoginState(account: "testUser", isLoginEnabled: true)
         
         // When
-        reducer.handle(.loginClicked)
+        let newState = reducer.reduce(state: initialState, intent: .loginClicked)
         
         // Then
-        XCTAssertTrue(reducer.state.isLoading)
-        XCTAssertFalse(reducer.state.isLoginEnabled)
-        XCTAssertNil(reducer.state.errorMessage)
+        XCTAssertEqual(newState.account, "testUser")
+        XCTAssertTrue(newState.isLoading)
+        XCTAssertFalse(newState.isLoginEnabled)
+        XCTAssertNil(newState.errorMessage)
     }
     
     func testLoginSuccess() {
         // Given
+        let initialState = LoginState(account: "testUser", isLoading: true)
         let user = User(account: "testUser", token: "token")
         
         // When
-        reducer.handle(.loginSuccess(user))
+        let newState = reducer.reduce(state: initialState, intent: .loginSuccess(user))
         
         // Then
-        XCTAssertFalse(reducer.state.isLoading)
-        XCTAssertTrue(reducer.state.isLoginEnabled)
-        XCTAssertNil(reducer.state.errorMessage)
-        XCTAssertEqual(reducer.state.user, user)
+        XCTAssertEqual(newState.account, "testUser")
+        XCTAssertFalse(newState.isLoading)
+        XCTAssertTrue(newState.isLoginEnabled)
+        XCTAssertNil(newState.errorMessage)
+        XCTAssertEqual(newState.user, user)
     }
     
     func testLoginFailure() {
         // Given
+        let initialState = LoginState(account: "testUser", isLoading: true)
         let error = LoginError.networkError
         
         // When
-        reducer.handle(.loginFailure(error))
+        let newState = reducer.reduce(state: initialState, intent: .loginFailure(error))
         
         // Then
-        XCTAssertFalse(reducer.state.isLoading)
-        XCTAssertTrue(reducer.state.isLoginEnabled)
-        XCTAssertEqual(reducer.state.errorMessage, error.localizedDescription)
-        XCTAssertNil(reducer.state.user)
+        XCTAssertEqual(newState.account, "testUser")
+        XCTAssertFalse(newState.isLoading)
+        XCTAssertTrue(newState.isLoginEnabled)
+        XCTAssertEqual(newState.errorMessage, error.localizedDescription)
+        XCTAssertNil(newState.user)
+    }
+    
+    func testClearError() {
+        // Given
+        let initialState = LoginState(account: "testUser", errorMessage: "Some error")
+        
+        // When
+        let newState = reducer.reduce(state: initialState, intent: .clearError)
+        
+        // Then
+        XCTAssertEqual(newState.account, "testUser")
+        XCTAssertFalse(newState.isLoading)
+        XCTAssertTrue(newState.isLoginEnabled)
+        XCTAssertNil(newState.errorMessage)
+        XCTAssertNil(newState.user)
     }
 }

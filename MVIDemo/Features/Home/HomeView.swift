@@ -1,18 +1,18 @@
 import SwiftUI
 
 struct HomeView: View {
-    @StateObject private var homeReducer: HomeReducer
-    private let announcementsReducer: AnnouncementsReducer
+    @StateObject private var homeModel: HomeModel
+    private let announcementsModel: AnnouncementsModel
     @Binding var isLoggedIn: Bool
     @State private var showingAnnouncements = false
     
     init(
-        homeReducer: HomeReducer,
-        announcementsReducer: AnnouncementsReducer,
+        homeModel: HomeModel,
+        announcementsModel: AnnouncementsModel,
         isLoggedIn: Binding<Bool>
     ) {
-        self._homeReducer = StateObject(wrappedValue: homeReducer)
-        self.announcementsReducer = announcementsReducer
+        self._homeModel = StateObject(wrappedValue: homeModel)
+        self.announcementsModel = announcementsModel
         self._isLoggedIn = isLoggedIn
     }
     
@@ -23,7 +23,7 @@ struct HomeView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 
-                if let user = homeReducer.state.user {
+                if let user = homeModel.state.user {
                     Text("歡迎，\(user.account)")
                         .font(.title2)
                         .padding()
@@ -32,16 +32,16 @@ struct HomeView: View {
                 }
                 
                 Button("查看公告") {
-                    showingAnnouncements = true
+                    homeModel.handle(.openAnnouncements)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(homeReducer.state.isLoading)
+                .disabled(homeModel.state.isLoading)
                 
-                if homeReducer.state.isLoading {
+                if homeModel.state.isLoading {
                     ProgressView("處理中...")
                 }
                 
-                if let errorMessage = homeReducer.state.errorMessage {
+                if let errorMessage = homeModel.state.errorMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
                         .font(.caption)
@@ -54,22 +54,28 @@ struct HomeView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("登出") {
-                        homeReducer.handle(.logoutClicked)
+                        homeModel.handle(.logoutClicked)
                     }
-                    .disabled(homeReducer.state.isLoading)
+                    .disabled(homeModel.state.isLoading)
                 }
             }
         }
         .onAppear {
-            homeReducer.handle(.viewAppeared)
+            homeModel.handle(.viewAppeared)
         }
-        .onChange(of: homeReducer.state.user) { user in
+        .onChange(of: homeModel.state.user) { user in
             if user == nil {
                 isLoggedIn = false
             }
         }
+        .onChange(of: homeModel.state.shouldNavigateToAnnouncements) { shouldNavigate in
+            if shouldNavigate {
+                showingAnnouncements = true
+                homeModel.handle(.clearNavigationFlag)
+            }
+        }
         .sheet(isPresented: $showingAnnouncements) {
-            AnnouncementsView(reducer: announcementsReducer)
+            AnnouncementsView(model: announcementsModel)
         }
     }
 }

@@ -62,3 +62,17 @@ final class FetchAnnouncementsUseCaseTests: XCTestCase {
         XCTAssertTrue(result.isEmpty)
     }
 }
+
+// MARK: - Mock Classes
+class MockAnnouncementRepository: AnnouncementRepository {
+    var shouldSucceed = true
+    var mockAnnouncements: [Announcement] = []
+    
+    func fetchAnnouncements() async throws -> [Announcement] {
+        if shouldSucceed {
+            return mockAnnouncements
+        } else {
+            throw NSError(domain: "MockError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Mock repository error"])
+        }
+    }
+}

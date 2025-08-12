@@ -1,29 +1,38 @@
+
+/*
+ 
+ Reducer 純函數狀態更新
+ ** 將 Presenter 中的狀態更新邏輯遷移到 Reducer
+
+   // MVI 新增：純函數處理『狀態變更』
+   struct LoginReducer {
+       func reduce(state: LoginState, intent: LoginIntent) -> LoginState {
+           // 根據 Intent 返回新的 State
+       }
+   }
+ 
+ */
+
 import Foundation
 
-class LoginReducer: ObservableObject {
-    @Published var state = LoginState.initial
-    
-    private let loginUseCase: LoginUseCase
-    
-    init(loginUseCase: LoginUseCase) {
-        self.loginUseCase = loginUseCase
-    }
-    
-    func handle(_ intent: LoginIntent) {
+protocol LoginReducerProtocol {
+    func reduce(state: LoginState, intent: LoginIntent) -> LoginState
+}
+
+struct LoginReducer: LoginReducerProtocol {
+    func reduce(state: LoginState, intent: LoginIntent) -> LoginState {
         switch intent {
         case .accountChanged(let account):
-            state = LoginState(
+            return LoginState(
                 account: account,
                 isLoading: state.isLoading,
-                isLoginEnabled: !account.isEmpty,
+                isLoginEnabled: !account.isEmpty && !state.isLoading,
                 errorMessage: nil,
                 user: state.user
             )
             
         case .loginClicked:
-            guard !state.account.isEmpty else { return }
-            
-            state = LoginState(
+            return LoginState(
                 account: state.account,
                 isLoading: true,
                 isLoginEnabled: false,
@@ -31,17 +40,8 @@ class LoginReducer: ObservableObject {
                 user: state.user
             )
             
-            Task { @MainActor in
-                do {
-                    let user = try await loginUseCase.execute(account: state.account)
-                    handle(.loginSuccess(user))
-                } catch {
-                    handle(.loginFailure(error))
-                }
-            }
-            
         case .loginSuccess(let user):
-            state = LoginState(
+            return LoginState(
                 account: state.account,
                 isLoading: false,
                 isLoginEnabled: true,
@@ -50,12 +50,30 @@ class LoginReducer: ObservableObject {
             )
             
         case .loginFailure(let error):
-            state = LoginState(
+            return LoginState(
                 account: state.account,
                 isLoading: false,
                 isLoginEnabled: true,
                 errorMessage: error.localizedDescription,
                 user: nil
+            )
+            
+        case .clearError:
+            return LoginState(
+                account: state.account,
+                isLoading: state.isLoading,
+                isLoginEnabled: state.isLoginEnabled,
+                errorMessage: nil,
+                user: state.user
+            )
+            
+        case .accountValidationFailed(let message):
+            return LoginState(
+                account: state.account,
+                isLoading: false,
+                isLoginEnabled: false,
+                errorMessage: message,
+                user: state.user
             )
         }
     }
