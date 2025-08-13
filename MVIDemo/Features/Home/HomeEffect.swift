@@ -11,8 +11,6 @@ import SwiftUI
 enum HomeEffect {
     case showLogoutSuccess
     case showLogoutError(String)
-    case navigateToLogin
-    case navigateToAnnouncements
     case hapticFeedback
     
     func toEffect() -> Effect {
@@ -23,10 +21,6 @@ enum HomeEffect {
             return AlertEffect(title: "登出失敗", message: message, actions: [
                 AlertAction(title: "確定", style: .default)
             ])
-        case .navigateToLogin:
-            return NavigationEffect(destination: AnyView(EmptyView()), navigationController: nil)
-        case .navigateToAnnouncements:
-            return NavigationEffect(destination: AnyView(EmptyView()), navigationController: nil)
         case .hapticFeedback:
             return HapticEffect(type: .light)
         }

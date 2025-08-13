@@ -34,6 +34,9 @@ class LoginModel: ModelProtocol, ObservableObject {
     private let accountValidationUseCase: AccountValidationUseCase
     private let effectHandler: EffectHandler
     
+    // 導航回調
+    var onLoginSuccess: (() -> Void)?
+    
     init(
         reducer: LoginReducerProtocol,
         loginUseCase: LoginUseCase,
@@ -74,7 +77,9 @@ class LoginModel: ModelProtocol, ObservableObject {
                     handle(.loginSuccess(user))
                     effectHandler.handle(LoginEffect.showLoginSuccess.toEffect())
                     effectHandler.handle(LoginEffect.hapticFeedback.toEffect())
-                    effectHandler.handle(LoginEffect.navigateToHome.toEffect())
+                    
+                    // 通過回調通知導航變更
+                    onLoginSuccess?()
                 } catch {
                     handle(.loginFailure(error))
                     effectHandler.handle(LoginEffect.showLoginError(error.localizedDescription).toEffect())

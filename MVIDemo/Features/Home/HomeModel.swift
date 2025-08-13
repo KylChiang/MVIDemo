@@ -48,7 +48,6 @@ class HomeModel: ModelProtocol, ObservableObject {
                     try await logoutUseCase.execute()
                     handle(.logoutSuccess)
                     effectHandler.handle(HomeEffect.showLogoutSuccess.toEffect())
-                    effectHandler.handle(HomeEffect.navigateToLogin.toEffect())
                 } catch {
                     handle(.logoutFailure(error))
                     effectHandler.handle(HomeEffect.showLogoutError(error.localizedDescription).toEffect())
@@ -60,7 +59,6 @@ class HomeModel: ModelProtocol, ObservableObject {
             
         case .openAnnouncements:
             state = reducer.reduce(state: state, intent: intent)
-            effectHandler.handle(HomeEffect.navigateToAnnouncements.toEffect())
         }
     }
 }

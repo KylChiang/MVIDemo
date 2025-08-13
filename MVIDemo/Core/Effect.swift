@@ -5,14 +5,6 @@ protocol Effect {
     func execute()
 }
 
-struct NavigationEffect: Effect {
-    let destination: AnyView
-    let navigationController: UINavigationController?
-    
-    func execute() {
-        // Handle navigation logic
-    }
-}
 
 struct AlertEffect: Effect {
     let title: String

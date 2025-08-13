@@ -32,7 +32,6 @@ enum LoginEffect {
     case showLoginSuccess
     case showLoginError(String)
     case showValidationError(String)
-    case navigateToHome
     case hapticFeedback
     
     func toEffect() -> Effect {
@@ -45,12 +44,6 @@ enum LoginEffect {
             ])
         case .showValidationError(let message):
             return ToastEffect(message: message, duration: 2.0)
-        case .navigateToHome:
-            return NavigationEffect(destination: AnyView(HomeView(
-                homeModel: DependencyContainer().makeHomeModel(), 
-                announcementsModel: DependencyContainer().makeAnnouncementsModel(), 
-                isLoggedIn: .constant(true)
-            )), navigationController: nil)
         case .hapticFeedback:
             return HapticEffect(type: .light)
         }
