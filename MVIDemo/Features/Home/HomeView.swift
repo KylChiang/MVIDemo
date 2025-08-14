@@ -2,17 +2,22 @@ import SwiftUI
 
 struct HomeView: View {
     @StateObject private var homeModel: HomeModel
+    @StateObject private var navigationManager: NavigationManager
     private let announcementsModel: AnnouncementsModel
+    private let dependencyContainer: DependencyContainer
     @Binding var isLoggedIn: Bool
-    @State private var showingAnnouncements = false
     
     init(
         homeModel: HomeModel,
+        navigationManager: NavigationManager,
         announcementsModel: AnnouncementsModel,
+        dependencyContainer: DependencyContainer,
         isLoggedIn: Binding<Bool>
     ) {
         self._homeModel = StateObject(wrappedValue: homeModel)
+        self._navigationManager = StateObject(wrappedValue: navigationManager)
         self.announcementsModel = announcementsModel
+        self.dependencyContainer = dependencyContainer
         self._isLoggedIn = isLoggedIn
     }
     
@@ -32,7 +37,8 @@ struct HomeView: View {
                 }
                 
                 Button("查看公告") {
-                    homeModel.handle(.openAnnouncements)
+                    // 使用新的導航系統，要求安全驗證
+                    navigationManager.requestSecureAnnouncementsAccess()
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(homeModel.state.isLoading)
@@ -68,14 +74,26 @@ struct HomeView: View {
                 isLoggedIn = false
             }
         }
-        .onChange(of: homeModel.state.shouldNavigateToAnnouncements) { shouldNavigate in
-            if shouldNavigate {
-                showingAnnouncements = true
-                homeModel.handle(.clearNavigationFlag)
+        // 處理複雜導航狀態
+        .sheet(isPresented: .constant(navigationManager.state.shouldShowSecurityVerification)) {
+            if let destination = navigationManager.state.pendingDestination {
+                SecurityVerificationView(
+                    model: dependencyContainer.makeSecurityVerificationModel(),
+                    destination: destination,
+                    onSuccess: {
+                        navigationManager.securityVerificationSucceeded(for: destination)
+                    },
+                    onCancel: {
+                        navigationManager.dismissCurrentNavigation()
+                    }
+                )
             }
         }
-        .sheet(isPresented: $showingAnnouncements) {
+        .sheet(isPresented: .constant(navigationManager.state.shouldShowAnnouncements)) {
             AnnouncementsView(model: announcementsModel)
+                .onDisappear {
+                    navigationManager.resetNavigation()
+                }
         }
     }
 }

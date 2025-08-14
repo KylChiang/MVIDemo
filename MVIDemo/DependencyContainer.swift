@@ -11,6 +11,7 @@ class DependencyContainer {
     lazy var getCurrentUserUseCase = GetCurrentUserUseCase(authRepository: authRepository)
     lazy var fetchAnnouncementsUseCase = FetchAnnouncementsUseCase(announcementRepository: announcementRepository)
     lazy var accountValidationUseCase: AccountValidationUseCase = AccountValidationUseCaseImpl()
+    lazy var securityVerificationUseCase: SecurityVerificationUseCase = SecurityVerificationUseCaseImpl()
     
     // MARK: - Core Components
     lazy var effectHandler = EffectHandler()
@@ -26,6 +27,14 @@ class DependencyContainer {
     
     func makeAnnouncementsReducer() -> AnnouncementsReducer {
         return AnnouncementsReducer()
+    }
+    
+    func makeNavigationReducer() -> NavigationReducer {
+        return NavigationReducer()
+    }
+    
+    func makeSecurityVerificationReducer() -> SecurityVerificationReducer {
+        return SecurityVerificationReducer()
     }
     
     // MARK: - Models
@@ -51,6 +60,21 @@ class DependencyContainer {
         return AnnouncementsModel(
             reducer: makeAnnouncementsReducer(),
             fetchAnnouncementsUseCase: fetchAnnouncementsUseCase,
+            effectHandler: effectHandler
+        )
+    }
+    
+    func makeNavigationManager() -> NavigationManager {
+        return NavigationManager(
+            reducer: makeNavigationReducer(),
+            effectHandler: effectHandler
+        )
+    }
+    
+    func makeSecurityVerificationModel() -> SecurityVerificationModel {
+        return SecurityVerificationModel(
+            reducer: makeSecurityVerificationReducer(),
+            securityVerificationUseCase: securityVerificationUseCase,
             effectHandler: effectHandler
         )
     }

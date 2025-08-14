@@ -25,23 +25,27 @@ struct ContentView: View {
     }
     
     var body: some View {
-        if isLoggedIn {
-            HomeView(
-                homeModel: dependencyContainer.makeHomeModel(),
-                announcementsModel: dependencyContainer.makeAnnouncementsModel(),
-                isLoggedIn: $isLoggedIn
-            )
-        } else {
-            LoginView(
-                model: loginModel,
-                isLoggedIn: $isLoggedIn
-            )
+        Group {
+            if isLoggedIn {
+                HomeView(
+                    homeModel: dependencyContainer.makeHomeModel(),
+                    navigationManager: dependencyContainer.makeNavigationManager(),
+                    announcementsModel: dependencyContainer.makeAnnouncementsModel(),
+                    dependencyContainer: dependencyContainer,
+                    isLoggedIn: $isLoggedIn
+                )
+            } else {
+                LoginView(
+                    model: loginModel,
+                    isLoggedIn: $isLoggedIn
+                )
+            }
         }
-    }
-    .onAppear {
-        // 設置登入成功回調
-        loginModel.onLoginSuccess = {
-            isLoggedIn = true
+        .onAppear {
+            // 設置登入成功回調
+            loginModel.onLoginSuccess = {
+                isLoggedIn = true
+            }
         }
     }
 }
