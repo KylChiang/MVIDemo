@@ -11,7 +11,7 @@ import Foundation
 /**
  * 導航管理器 - MVI 架構中的核心控制器
  * 負責管理整個應用程式的導航狀態和流程
- * 將用戶意圖轉換為狀態變更，並處理相關的副作用
+ * 副作用處理機制: 將用戶意圖轉換為狀態變更，並處理相關的副作用
  */
 class NavigationManager: ModelProtocol, ObservableObject {
     typealias Intent = NavigationIntent
