@@ -70,20 +70,20 @@ class NavigationManager: ModelProtocol, ObservableObject {
         switch intent {
         case .requestSecureAccess:
             // 請求安全訪問時顯示提示
-            effectHandler.handle(NavigationEffect.showSecurityPrompt.toEffect())
+            effectHandler.handle(NavigationEffect.showSecurityPromptToast.toEffect())
             
         case .securityVerificationSuccess:
             // 驗證成功時顯示成功訊息和震動回饋
-            effectHandler.handle(NavigationEffect.showNavigationSuccess.toEffect())
+            effectHandler.handle(NavigationEffect.showNavigationSuccessToast.toEffect())
             effectHandler.handle(NavigationEffect.hapticFeedback.toEffect())
             
         case .securityVerificationFailed:
             // 驗證失敗時顯示錯誤訊息
-            effectHandler.handle(NavigationEffect.showSecurityError.toEffect())
+            effectHandler.handle(NavigationEffect.showSecurityErrorToast.toEffect())
             
         case .dismissCurrentNavigation:
             // 取消導航時顯示確認訊息
-            effectHandler.handle(NavigationEffect.showDismissalConfirmation.toEffect())
+            effectHandler.handle(NavigationEffect.showDismissalConfirmationToast.toEffect())
             
         default:
             // 其他意圖不需要特殊的副作用處理
@@ -150,16 +150,16 @@ class NavigationManager: ModelProtocol, ObservableObject {
  */
 enum NavigationEffect {
     /// 顯示安全驗證提示
-    case showSecurityPrompt
+    case showSecurityPromptToast
     
     /// 顯示導航成功訊息
-    case showNavigationSuccess
+    case showNavigationSuccessToast
     
     /// 顯示安全錯誤訊息
-    case showSecurityError
+    case showSecurityErrorToast
     
     /// 顯示取消確認訊息
-    case showDismissalConfirmation
+    case showDismissalConfirmationToast
     
     /// 觸發震動回饋
     case hapticFeedback
@@ -170,13 +170,13 @@ enum NavigationEffect {
      */
     func toEffect() -> Effect {
         switch self {
-        case .showSecurityPrompt:
+        case .showSecurityPromptToast:
             return ToastEffect(message: "需要安全驗證", duration: 1.0)
-        case .showNavigationSuccess:
+        case .showNavigationSuccessToast:
             return ToastEffect(message: "驗證成功，正在跳轉", duration: 1.0)
-        case .showSecurityError:
+        case .showSecurityErrorToast:
             return ToastEffect(message: "驗證失敗", duration: 2.0)
-        case .showDismissalConfirmation:
+        case .showDismissalConfirmationToast:
             return ToastEffect(message: "已取消操作", duration: 1.0)
         case .hapticFeedback:
             return HapticEffect(type: .light)
