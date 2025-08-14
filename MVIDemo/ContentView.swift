@@ -42,10 +42,18 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            // 設置登入成功回調
-            loginModel.onLoginSuccess = {
-                isLoggedIn = true
+            // 設置登入成功回調（只有在未登入時才需要）
+            if !isLoggedIn {
+                loginModel.onLoginSuccess = {
+                    isLoggedIn = true
+                }
+            } else {
+                // 在這裡添加 app 重開時需要執行的邏輯
+                // 例如：檢查用戶狀態、更新資料等
+                
+                // doNothing
             }
+
         }
     }
 }
