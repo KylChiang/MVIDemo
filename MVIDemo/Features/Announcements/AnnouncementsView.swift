@@ -2,10 +2,11 @@ import SwiftUI
 
 struct AnnouncementsView: View {
     @StateObject private var model: AnnouncementsModel
-    @Environment(\.dismiss) private var dismiss
+    let onDismiss: () -> Void
     
-    init(model: AnnouncementsModel) {
+    init(model: AnnouncementsModel, onDismiss: @escaping () -> Void = {}) {
         self._model = StateObject(wrappedValue: model)
+        self.onDismiss = onDismiss
     }
     
     var body: some View {
@@ -43,7 +44,7 @@ struct AnnouncementsView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("返回") {
-                        dismiss()
+                        onDismiss()
                     }
                 }
             }

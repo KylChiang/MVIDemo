@@ -90,10 +90,9 @@ struct HomeView: View {
             }
         }
         .sheet(isPresented: .constant(navigationManager.state.shouldShowAnnouncements)) {
-            AnnouncementsView(model: announcementsModel)
-                .onDisappear {
-                    navigationManager.resetNavigation()
-                }
+            AnnouncementsView(model: announcementsModel) {
+                navigationManager.resetNavigation()
+            }
         }
     }
 }
