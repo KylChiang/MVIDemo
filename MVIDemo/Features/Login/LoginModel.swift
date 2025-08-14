@@ -75,7 +75,7 @@ class LoginModel: ModelProtocol, ObservableObject {
                 do {
                     let user = try await loginUseCase.execute(account: state.account)
                     handle(.loginSuccess(user))
-                    effectHandler.handle(LoginEffect.showLoginSuccess.toEffect())
+                    effectHandler.handle(LoginEffect.showLoginSuccessToast.toEffect())
                     effectHandler.handle(LoginEffect.hapticFeedback.toEffect())
                     
                     // 通過回調通知導航變更

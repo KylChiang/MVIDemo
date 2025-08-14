@@ -29,14 +29,14 @@ import Foundation
 import SwiftUI
 
 enum LoginEffect {
-    case showLoginSuccess
+    case showLoginSuccessToast
     case showLoginError(String)
     case showValidationError(String)
     case hapticFeedback
     
     func toEffect() -> Effect {
         switch self {
-        case .showLoginSuccess:
+        case .showLoginSuccessToast:
             return ToastEffect(message: "登入成功", duration: 2.0)
         case .showLoginError(let message):
             return AlertEffect(title: "登入失敗", message: message, actions: [
